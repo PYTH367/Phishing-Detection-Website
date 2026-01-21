@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Phishing Detection</title>
+    <style>
+        /* Modern Cyber Security Theme */
+        :root {
+            --bg-color: #050a10;
+            /* Deepest black/blue */
+            --card-bg: #0f1623;
+            --text-color: #e6edf3;
+            --text-muted: #8b949e;
+
+            /* Status Colors */
+            --safe-color: #2ea043;
+            --safe-bg: rgba(46, 160, 67, 0.15);
+            --safe-border: rgba(46, 160, 67, 0.4);
+
+            --sus-color: #d29922;
+            /* Orange */
+            --sus-bg: rgba(210, 153, 34, 0.15);
+            --sus-border: rgba(210, 153, 34, 0.4);
+
+            --dang-color: #f85149;
+            /* Red */
+            --dang-bg: rgba(248, 81, 73, 0.15);
+            --dang-border: rgba(248, 81, 73, 0.4);
+
+            --primary-blue: #58a6ff;
+            --border-color: #30363d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(13, 17, 23, 0.9), rgba(13, 17, 23, 0.9)),
+                url('https://media.istockphoto.com/id/1156644023/vector/cyber-security-concept-shield-with-keyhole-icon-on-digital-data-background-illustratin.jpg?s=612x612&w=0&k=20&c=wO-9iJzR6F8FvJz8X6F8FvJz8X6F8FvJz8X6F8FvJz8=');
+            /* Subtle tech background or just gradient */
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Fallback background if image fails */
+        body {
+            background: radial-gradient(circle at 50% 0%, #1a2332 0%, #050a10 100%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Top Accent Line */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), #a371f7);
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 5px;
+            font-size: 2.5em;
+            letter-spacing: -0.5px;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--primary-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 18px 25px;
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.15);
+            background-color: #161b22;
+        }
+
+        input[type="text"]::placeholder {
+            color: #484f58;
+        }
+
+        button {
+            background: var(--primary-blue);
+            color: #050a10;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.4);
+        }
+
+        button:hover {
+            background: #79c0ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(88, 166, 255, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Result Box Styles */
+        #result {
+            margin-top: 40px;
+            display: none;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .result-box {
+            padding: 30px;
+            border-radius: 12px;
+            text-align: left;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 800;
+        }
+
+        .result-icon {
+            font-size: 1.2em;
+        }
+
+        /* Status Specific Styles */
+        .safe .result-box {
+            background-color: var(--safe-bg);
+            border: 1px solid var(--safe-border);
+            color: var(--safe-color);
+        }
+
+        .suspicious .result-box {
+            background-color: var(--sus-bg);
+            border: 1px solid var(--sus-border);
+            color: var(--sus-color);
+        }
+
+        .dangerous .result-box {
+            background-color: var(--dang-bg);
+            border: 1px solid var(--dang-border);
+            color: var(--dang-color);
+        }
+
+        .reasons-title {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .reasons-list {
+            list-style: none;
+            color: var(--text-color);
+        }
+
+        .reasons-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .reasons-list li::before {
+            content: '•';
+            position: absolute;
+            left: 5px;
+            color: inherit;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scanning Animation */
+        .scanning {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .scan-text {
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #21262d;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-blue);
+            box-shadow: 0 0 10px var(--primary-blue);
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="card">
+            <span class="badge">v2.0 Advanced Engine</span>
+            <h1>Phishing Detection</h1>
+            <p class="subtitle">Enter a URL to scan it against our multi-layer protection engine (Rules, Whois,
+                Reputation).</p>
+
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="https://example.com" autocomplete="off">
+            </div>
+
+            <button onclick="startScan()">SCAN WEBSITE</button>
+
+            <!-- Scanning Animation -->
+            <div class="scanning" id="scanning">
+                <div class="scan-text" id="scanText">Initializing scan...</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startScan() {
+            const urlInput = document.getElementById('urlInput');
+            const resultDiv = document.getElementById('result');
+            const scanningDiv = document.getElementById('scanning');
+            const progressBar = document.getElementById('progressBar');
+            const scanText = document.getElementById('scanText');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                alert("Please enter a URL first.");
+                return;
+            }
+
+            if (window.location.protocol === 'file:') {
+                alert("Please run this via Flask (python app.py).");
+                return;
+            }
+
+            // Reset UI
+            resultDiv.style.display = 'none';
+            resultDiv.className = '';
+            scanningDiv.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            // Artificial "Scanning" progress steps for UI feel
+            let progress = 0;
+            const steps = [
+                "Analyzing URL structure...",
+                "Checking domain age (Whois)...",
+                "Consulting threat intelligence (VirusTotal)...",
+                "Finalizing report..."
+            ];
+
+            let stepIndex = 0;
+
+            const interval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+
+                if (progress % 25 === 0 && stepIndex < steps.length) {
+                    scanText.innerText = steps[stepIndex];
+                    stepIndex++;
+                }
+
+                if (progress >= 90) {
+                    clearInterval(interval);
+                }
+            }, 100);
+
+            // API Call
+            fetch('/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error("Server Error");
+                    return response.json();
+                })
+                .then(data => {
+                    // Finish animation
+                    clearInterval(interval);
+                    progressBar.style.width = '100%';
+
+                    setTimeout(() => {
+                        scanningDiv.style.display = 'none';
+                        showResult(data);
+                    }, 500); // Short delay to show 100%
+                })
+                .catch(error => {
+                    clearInterval(interval);
+                    scanningDiv.style.display = 'none';
+                    alert("Error: " + error.message);
+                });
+        }
+
+        function showResult(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = data.status; // safe, suspicious, dangerous
+
+            let icon = '🛡️';
+            if (data.status === 'suspicious') icon = '⚠️';
+            if (data.status === 'dangerous') icon = '🚫';
+
+            let html = `
+                <div class="result-box">
+                    <div class="result-header">
+                        <span class="result-icon">${icon}</span>
+                        <span>${data.result}</span>
+                    </div>
+            `;
+
+            if (data.reasons && data.reasons.length > 0) {
+                html += `
+                    <div class="reasons-title">Detection Details</div>
+                    <ul class="reasons-list">
+                `;
+                data.reasons.forEach(r => {
+                    html += `<li>${r}</li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `
+                    <div class="reasons-title">Analysis Report</div>
+                    <p style="color: #c9d1d9; opacity: 0.8;">No threats were found. This website appears to be safe.</p>
+                `;
+            }
+
+            html += `</div>`;
+            resultDiv.innerHTML = html;
+        }
+
+        // Allow 'Enter' key
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') startScan();
+        });
+    </script>
+</body>
+
+</html>
